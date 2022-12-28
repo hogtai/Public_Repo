@@ -1,0 +1,110 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.10.0.0/16
+      Region: us-east-1
+      
+  MyInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties: {}
+
+  MyVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref MyInternetGateway
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.10.1.0/24
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: true
+ 
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.10.2.0/24
+      AvailabilityZone: us-east-1b
+      MapPublicIpOnLaunch: true
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.10.3.0/24
+      AvailabilityZone: us-east-1c
+      MapPublicIpOnLaunch: true
+
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: WebServerSecurityGroup
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: LoadBalancerSecurityGroup
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: WebServerLaunchTemplate
+      LaunchTemplateData:
+        ImageId: ami-01234567890abcdef
+        InstanceType: t2.micro
+        UserData: |
+          #!/bin/bash
+          yum update -y
+          yum install -y httpd
+          systemctl start httpd
+          systemctl enable httpd
+          echo "This is a test page" > /var/www/html/index.html
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      MinSize: 2
+      MaxSize: 5
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: '1'
+      VPCZoneIdentifier:
+      - !Ref PublicSubnet1
+      - !Ref PublicSubnet2
+      - !Ref PublicSubnet3
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      Subnets:
+      - !Ref PublicSubnet1
+      - !Ref PublicSubnet2
+      - !Ref PublicSubnet3
+      SecurityGroups:
+      - !Ref LoadBalancerSecurityGroup
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheck
