@@ -2,23 +2,38 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
 Resources:
-  VPC:
+  My-companyVPC:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 10.10.0.0/16
       Region: us-east-1
+      EnableDnsSupport: true 
+      EnableDnsHostnames: true 
+      InstanceTenancy: default 
       
-  MyInternetGateway:
-    Type: AWS::EC2::InternetGateway
-    Properties: {}
+   My-company-IG:
+      Type: AWS::EC2::InternetGateway
+       Properties: {}
 
-  MyVPCGatewayAttachment:
+  My-companyVPCGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId: !Ref VPC
-      InternetGatewayId: !Ref MyInternetGateway
+      VpcId: !Ref My-companyVPC 
+      InternetGatewayId: !Ref  My-company-IG     
 
-  PublicSubnet1:
+  MyRouteTable: 
+     Type: AWS::EC2::RouteTable 
+     Properties: 
+         VpcId: !Ref My-companyVPC 
+
+MyPublicRoute: 
+     Type: AWS::EC2::Route 
+      Properties: 
+         RouteTableId: !Ref MyRouteTable 
+         DestinationCidrBlock: 0.0.0.0/0 
+          GatewayId: !Ref  My-company-IG   
+
+  company-subnet-1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
@@ -26,85 +41,137 @@ Resources:
       AvailabilityZone: us-east-1a
       MapPublicIpOnLaunch: true
  
-  PublicSubnet2:
+  company-subnet-2:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref VPC
+      VpcId: !Ref My-companyVPC
       CidrBlock: 10.10.2.0/24
       AvailabilityZone: us-east-1b
       MapPublicIpOnLaunch: true
 
-  PublicSubnet3:
+  company-subnet-1:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref VPC
+      VpcId: !Ref My-companyVPC
       CidrBlock: 10.10.3.0/24
       AvailabilityZone: us-east-1c
       MapPublicIpOnLaunch: true
 
-  WebServerSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: WebServerSecurityGroup
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 80
-        ToPort: 80
-        SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+MyPublicSubnetRouteTableAssociation: 
+      Type: AWS::EC2::SubnetRouteTableAssociation 
+       Properties:
+          SubnetId: !Ref  company-subnet-1
+                           !Ref  company-subnet-2
+                           !Ref  company-subnet-3
+          RouteTableId: !Ref MyRouteTable   
 
-  LoadBalancerSecurityGroup:
+myCompanySecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: LoadBalancerSecurityGroup
-      VpcId: !Ref VPC
+      GroupDescription: Allow inbound traffic from HTTP, HTTPS, and SSH
+      GroupName: myCompanySecurityGroup
       SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 80
+        CidrIp: 0.0.0.0/0
+        IpProtocol: tcp
         ToPort: 80
         CidrIp: 0.0.0.0/0
+        IpProtocol: tcp
+        ToPort: 443
+        CidrIp: 0.0.0.0/0
+        IpProtocol: tcp
+        ToPort: 22
+      SecurityGroupEgress:
+         CidrIp: 0.0.0.0/0 
+      VpcId: !Ref My-companyVPC
 
-  LaunchTemplate:
+  MyCompanyWebserver:
     Type: AWS::EC2::LaunchTemplate
     Properties:
-      LaunchTemplateName: WebServerLaunchTemplate
+      LaunchTemplateName: MyCompanyWebserver
       LaunchTemplateData:
-        ImageId: ami-01234567890abcdef
+        ImageId: ami-0b5eea76982371e91 
         InstanceType: t2.micro
+        KeyName: ?
+        Monitoring:
+	Enable: true
+        SecurityGroupIDs: !Ref myCompanySecurityGroup
         UserData: |
           #!/bin/bash
           yum update -y
           yum install -y httpd
           systemctl start httpd
           systemctl enable httpd
-          echo "This is a test page" > /var/www/html/index.html
 
-  AutoScalingGroup:
+  MyCompanyASG-1: 
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      MinSize: 2
-      MaxSize: 5
+      AutoScalingGroupName: MyCompanyASG-1
       LaunchTemplate:
-        LaunchTemplateId: !Ref LaunchTemplate
-        Version: '1'
+        LaunchTemplateId: !Ref MyCompanyWebserver
+        Version: !GetAtt MyCompanyWebserver.LatestVersionNumber
+      AvailabilityZones:
+         - us-east-1a
+         - us-east-1b
+         - us-east-1c
+      MinSize: '2'
+      MaxSize: '5'
+      DesiredCapacity: '2'
       VPCZoneIdentifier:
-      - !Ref PublicSubnet1
-      - !Ref PublicSubnet2
-      - !Ref PublicSubnet3
+      - !Ref company-subnet-1
+      - !Ref company-subnet-2
+      - !Ref company-subnet-3
 
-  LoadBalancer:
+   MyCompanyASG-1ScaleUpPolicy: 
+      Type: AWS::AutoScaling::ScalingPolicy 
+          Properties: 
+             AutoScalingGroupName: !Ref MyAutoScalingGroup 
+             PolicyType: TargetTrackingScaling 
+             TargetTrackingConfiguration: 
+                TargetValue: 50 
+                PredefinedMetricSpecification: 
+                   PredefinedMetricType: ASGAverageCPUUtilization 
+             ScalingAdjustment: 1 
+             AdjustmentType: ChangeInCapacity 
+
+   MyCompanyASG-1ScaleDownPolicy: 
+      Type: AWS::AutoScaling::ScalingPolicy 
+          Properties: 
+             AutoScalingGroupName: !Ref MyAutoScalingGroup 
+             PolicyType: TargetTrackingScaling 
+             TargetTrackingConfiguration: 
+                TargetValue: 0 
+                PredefinedMetricSpecification: 
+                   PredefinedMetricType: ASGAverageCPUUtilization 
+             ScalingAdjustment: -1 
+             AdjustmentType: ChangeInCapacity 
+
+  myCompanyALB-1:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Scheme: internet-facing
-      Subnets:
-      - !Ref PublicSubnet1
-      - !Ref PublicSubnet2
-      - !Ref PublicSubnet3
+      IpAddressType: ipv4
       SecurityGroups:
-      - !Ref LoadBalancerSecurityGroup
+      - !Ref myCompanySecurityGroup
+       Subnets:
+      - !Ref company-subnet-1
+      - !Ref company-subnet-2
+      - !Ref company-subnet-3
 
-  TargetGroup:
+   myCompanyALB-1Listener:
+     Type: AWS::ElasticLoadBalancingV2::Listenter
+      Properties:
+	LoadBalancerArn: !Ref myCompanyALB-1
+            Port: 80
+            Protocol: HTTP
+            DefaultActions:
+                Type: forward
+                 TargetGroupArn: !Ref my-company
+ 
+  ApplicationLoadBalancerTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckIntervalSeconds: 30
-      HealthCheck
+      Name: my-company
+      VpcId: !Ref My-companyVPC
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
