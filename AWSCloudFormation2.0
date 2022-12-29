@@ -1,0 +1,189 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  MycompanyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.10.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+  MyCompanyIG:
+    Type: AWS::EC2::InternetGateway
+  MyCompanyVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MycompanyVPC
+      InternetGatewayId: !Ref MyCompanyIG
+  MyRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MycompanyVPC
+  MyPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn:
+       - MyCompanyIG
+       - MyCompanyVPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref MyRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyCompanyIG
+      
+      
+      
+      
+      
+      ---
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  MycompanyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.10.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+  MyCompanyIG:
+    Type: AWS::EC2::InternetGateway
+  MyCompanyVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: My-companyVPC
+      InternetGatewayId: !Ref MyCompanyIG
+  MyRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: My-companyVPC
+  MyPublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: MyRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: My-company-IG
+  companysubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: VPC
+      CidrBlock: 10.10.1.0/24
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: true
+  companysubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: My-companyVPC
+      CidrBlock: 10.10.2.0/24
+      AvailabilityZone: us-east-1b
+      MapPublicIpOnLaunch: true
+  companysubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: My-companyVPC
+      CidrBlock: 10.10.3.0/24
+      AvailabilityZone: us-east-1c
+      MapPublicIpOnLaunch: true
+  MyPublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: company-subnet-1 !Ref  company-subnet-2 !Ref  company-subnet-3
+      RouteTableId: MyRouteTable
+  myCompanySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow inbound traffic from HTTP, HTTPS, and SSH
+      GroupName: myCompanySecurityGroup
+      VpcId: My-companyVPC
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          ToPort: 443
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          ToPort: 22
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+  MyCompanyWebserver:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: MyCompanyWebserver
+      LaunchTemplateData:
+        ImageId: ami-0b5eea76982371e91
+        InstanceType: t2.micro
+        KeyName: AWS_CDA_SERVER_KEYPAIR
+      Monitoring:
+        Enabled: true
+      SecurityGroupIds:
+         - myCompanySecurityGroup
+      UserData: |
+         #!/bin/bash
+         yum update -y
+         yum install -y httpd
+         systemctl start httpd
+         systemctl enable httpd
+  MyCompanyASG1:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: MyCompanyASG1
+      LaunchTemplate:
+        LaunchTemplateId: MyCompanyWebserver
+        Version: MyCompanyWebserver.LatestVersionNumber
+      AvailabilityZones:
+        - us-east-1a
+        - us-east-1b
+        - us-east-1c
+      MinSize: "2"
+      MaxSize: "5"
+      DesiredCapacity: "2"
+      VPCZoneIdentifier:
+        - companysubnet1
+        - companysubnet2
+        - companysubnet3
+  MyCompanyASG1ScaleUpPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: MyAutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        TargetValue: 50
+        PredefinedMetricType: ASGAverageCPUUtilization
+        ScalingAdjustment: 1
+        AdjustmentType: ChangeInCapacity
+  MyCompanyASG1ScaleDownPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: MyAutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        TargetValue: 0
+        PredefinedMetricType: ASGAverageCPUUtilization
+        ScalingAdjustment: -1
+        AdjustmentType: ChangeInCapacity
+  myCompanyALB1:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      SecurityGroup:
+        - myCompanySecurityGroup
+      Subnets:
+        - company-subnet-1
+        - company-subnet-2
+        - company-subnet-3
+  myCompanyALB1Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref myCompanyALB1
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        Type: forward
+        TargetGroupArn: my-company
+  ApplicationLoadBalancerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: mycompany
+      VpcId: !Ref MycompanyVPC
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
