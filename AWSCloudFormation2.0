@@ -223,7 +223,6 @@ Resources:
         PredefinedMetricSpecification:
           PredefinedMetricType: ASGAverageCPUUtilization
         TargetValue: '50'
-
   MyCompanyALB1:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     DependsOn:
@@ -288,20 +287,7 @@ Resources:
     Properties:
       DefaultActions:
         - Type: forward
-          ForwardConfig:
-            - TargetGroupArn: !Ref ApplicationLoadBalancerTargetGroup
+          TargetGroupArn: !Ref ApplicationLoadBalancerTargetGroup
       LoadBalancerArn: !Ref MyCompanyALB1
       Port: 80
       Protocol: HTTP
-
-
-
-  myCompanyALB1Listener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties:
-      LoadBalancerArn: !Ref myCompanyALB1
-      Port: 80
-      Protocol: HTTP
-      DefaultActions:
-        Type: forward
-        TargetGroupArn: my-company
