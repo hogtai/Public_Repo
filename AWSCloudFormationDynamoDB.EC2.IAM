@@ -198,7 +198,7 @@ Resources:
     Properties:
         InstanceType: t2.micro
         ImageId: ami-0b5eea76982371e91
-        IamInstanceProfile: !Ref IAMDynamoDBReadONLYEC2
+        IamInstanceProfile: !Ref EC2nstanceProfile
         KeyName: AWS_CDA_SERVER_KEYPAIR
         SecurityGroupIds: 
           - !Ref myCompanySecurityGroup
