@@ -1,0 +1,205 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  MycompanyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.10.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+
+  MyCompanyIG:
+    Type: AWS::EC2::InternetGateway
+    DependsOn: MycompanyVPC
+
+  MyCompanyVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    DependsOn: 
+      - MycompanyVPC
+      - MyCompanyIG
+    Properties:
+      VpcId: !Ref MycompanyVPC
+      InternetGatewayId: !Ref MyCompanyIG
+
+  MyRouteTable:
+    Type: AWS::EC2::RouteTable
+    DependsOn:
+      - MycompanyVPC
+      - MyCompanyIG
+      - MyCompanyVPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MycompanyVPC
+
+  MyPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn:
+       - MycompanyVPC
+       - MyCompanyIG
+       - MyCompanyVPCGatewayAttachment
+       - MyRouteTable
+    Properties:
+      RouteTableId: !Ref MyRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyCompanyIG
+  companysubnet1:
+    Type: AWS::EC2::Subnet
+    DependsOn:
+       - MycompanyVPC
+       - MyCompanyIG
+       - MyCompanyVPCGatewayAttachment
+       - MyRouteTable 
+       - MyPublicRoute
+    Properties:
+      VpcId: !Ref MycompanyVPC
+      CidrBlock: 10.10.1.0/24
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: true
+
+  MyPublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+       - MycompanyVPC
+       - MyCompanyIG
+       - MyCompanyVPCGatewayAttachment
+       - MyRouteTable 
+       - MyPublicRoute
+       - companysubnet1
+    Properties:
+      RouteTableId: !Ref MyRouteTable
+      SubnetId: !Ref companysubnet1
+
+  myCompanySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn:
+      - MycompanyVPC
+    Properties:
+      GroupDescription: Allow inbound traffic from HTTP, HTTPS, and SSH
+      GroupName: myCompanySecurityGroup
+      VpcId: !Ref MycompanyVPC
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 0
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 0
+          ToPort: 443
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 0
+          ToPort: 22
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  myGameTable:
+    Type: AWS::DynamoDB::Table
+    DependsOn:
+      - MycompanyVPC
+      - MyCompanyIG
+      - MyCompanyVPCGatewayAttachment
+      - MyRouteTable 
+      - MyPublicRoute
+      - companysubnet1
+      - myCompanySecurityGroup
+    Properties:
+      TableName: myGame
+      AttributeDefinitions:
+        - AttributeName: playerUSERNAME
+          AttributeType: S
+        - AttributeName: playerID
+          AttributeType: N
+      KeySchema:
+        - AttributeName: playerUSERNAME
+          KeyType: HASH
+        - AttributeName: playerID
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  IAMDynamoDBReadONLYEC2:
+    Type: "AWS::IAM::Role"
+    DependsOn:
+      - MycompanyVPC
+      - MyCompanyIG
+      - MyCompanyVPCGatewayAttachment
+      - MyRouteTable 
+      - MyPublicRoute
+      - companysubnet1
+      - myCompanySecurityGroup
+      - myGameTable
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Description: Read Only Access to DynamoDB Table
+      Policies:
+        - PolicyName: AmazonDynamoDBReadOnlyAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ListAndDescribe
+                Effect: Allow
+                Action:
+                  - dynamodb:List*
+                  - dynamodb:DescribeReservedCapacity*
+                  - dynamodb:DescribeLimits
+                  - dynamodb:DescribeTimeToLive
+                Resource: "*"
+              - Sid: SpecificTable
+                Effect: Allow
+                Action:
+                  - dynamodb:BatchGet*
+                  - dynamodb:DescribeStream
+                  - dynamodb:DescribeTable
+                  - dynamodb:Get*
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource: "*"
+      RoleName: DynamoBDReadOnly
+
+  EC2nstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    DependsOn: 
+      - MycompanyVPC
+      - MyCompanyIG
+      - MyCompanyVPCGatewayAttachment
+      - MyRouteTable 
+      - MyPublicRoute
+      - companysubnet1
+      - myCompanySecurityGroup
+      - myGameTable
+      - IAMDynamoDBReadONLYEC2
+    Properties:
+      Roles:
+        - !Ref IAMDynamoDBReadONLYEC2
+
+  myCompanyWebserver:
+    Type: AWS::EC2::Instance
+    DependsOn:
+      - MycompanyVPC
+      - MyCompanyIG
+      - MyCompanyVPCGatewayAttachment
+      - MyRouteTable 
+      - MyPublicRoute
+      - companysubnet1
+      - myCompanySecurityGroup
+      - IAMDynamoDBReadONLYEC2
+      - EC2nstanceProfile
+    Properties:
+        InstanceType: t2.micro
+        ImageId: ami-0b5eea76982371e91
+        IamInstanceProfile: !Ref IAMDynamoDBReadONLYEC2
+        KeyName: AWS_CDA_SERVER_KEYPAIR
+        SecurityGroupIds: 
+          - !Ref myCompanySecurityGroup
+        SubnetId: !Ref companysubnet1
