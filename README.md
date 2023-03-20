@@ -22,10 +22,10 @@
   <p>This repo contains all sorts of cool stuff that I've been working on. Some of the highlights include:</p>
 
   <ul>
-    <li>🎨 Beautiful CSS designs</li>
-    <li>📊 Data analysis scripts</li>
-    <li>👩‍💻 Code snippets and libraries</li>
-    <li>📚 Learning resources and tutorials</li>
+    <li>🎨 Bash Scripts for Linux</li>
+    <li>📊 AWS CLI Commands for Cloud Provisioning Resources</li>
+    <li>👩‍💻 Python Scripts</li>
+    <li>📚 Docker, Kubernetes, anb Terraform Templates</li>
   </ul>
 
   <h2 id="features">🎉 Features</h2>
