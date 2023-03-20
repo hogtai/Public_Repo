@@ -1,12 +1,19 @@
 <div align="center">
   <img src="https://i.imgur.com/9PMHgpZ.png" alt="Repository Logo" height="100">
 
-  <h1>📚 My Awesome Public Repo 🚀</h1>
+  <h1>📚 My Public Repo! 🚀</h1>
   
   <p>Welcome to my awesome public repo! This repository contains all sorts of cool stuff that I've been working on. Feel free to take a look around and use anything you find useful.</p>
 
   <h2>📖 Table of Contents</h2>
   
+<style>
+  .left-align {
+    text-align: left;
+  }
+</style>
+
+<div class="left-align">
   <ul>
     <li><a href="#about">👋 About</a></li>
     <li><a href="#features">🎉 Features</a></li>
@@ -14,6 +21,7 @@
     <li><a href="#contributing">🤝 Contributing</a></li>
     <li><a href="#license">📝 License</a></li>
   </ul>
+</div>
 
   <h2 id="about">👋 About</h2>
 
