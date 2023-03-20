@@ -7,13 +7,7 @@
 
   <h2>📖 Table of Contents</h2>
   
-<style>
-  .left-align {
-    text-align: left;
-  }
-</style>
-
-<div class="left-align">
+  <div style="text-align: left;">
   <ul>
     <li><a href="#about">👋 About</a></li>
     <li><a href="#features">🎉 Features</a></li>
