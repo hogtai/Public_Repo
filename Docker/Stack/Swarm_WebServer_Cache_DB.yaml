@@ -1,0 +1,28 @@
+version: "3.7"
+
+services:
+  web_server:
+    image: httpd:latest
+    deploy:
+      replicas: 10
+      placement:
+        constraints:
+          - node.hostname==ip-172-31-3-84.us-east-2.compute.internal
+
+  database:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: password
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname==ip-172-31-3-225.us-east-2.compute.internal
+
+  caching_DB:
+    image: redis:6
+    deploy:
+      replicas: 4
+      placement:
+        constraints:
+          - node.hostname==ip-172-31-15-152.us-east-2.compute.internal
