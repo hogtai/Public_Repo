@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-server
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: web-server
+  template:
+    metadata:
+      labels:
+        app: web-server
+    spec:
+      containers:
+      - name: web-server
+        image: httpd:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-server
+spec:
+  selector:
+    app: web-server
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+      - name: database
+        image: postgres:latest
+        env:
+        - name: POSTGRES_PASSWORD
+          value: password
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: caching-db
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: caching-db
+  template:
+    metadata:
+      labels:
+        app: caching-db
+    spec:
+      containers:
+      - name: caching-db
+        image: redis:6
+---
