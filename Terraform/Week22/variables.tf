@@ -188,7 +188,7 @@ variable "launch_template_description" {
 
 variable "launch_template_image_id" {
   description = "The AMI ID for the launch template"
-  default     = "ami-02f97949d306b597a"
+  default     = "ami-029940b2e685ba541"
 }
 
 variable "launch_template_instance_type" {

@@ -22,6 +22,14 @@ resource "aws_rds_cluster" "aurora_mysql_cluster" {
   backup_retention_period      = 7
   preferred_backup_window      = "07:00-09:00"
   preferred_maintenance_window = "Sat:10:00-Sat:10:30"
+  tags = {
+    Terraform   = "true"
+    Environment = "test"
+  }
+
+  provisioner "local-exec" {
+    command = "echo 'db_host = \"${aws_rds_cluster.aurora_mysql_cluster.endpoint}\"' >> terraform.tfvars"
+  }
 }
 
 resource "aws_rds_cluster_instance" "aurora_mysql_cluster_instance" {
@@ -31,4 +39,3 @@ resource "aws_rds_cluster_instance" "aurora_mysql_cluster_instance" {
   engine              = "aurora-mysql"
   publicly_accessible = false
 }
-
