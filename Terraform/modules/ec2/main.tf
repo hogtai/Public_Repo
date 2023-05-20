@@ -10,6 +10,7 @@ resource "aws_instance" "ec2_instances" {
   }
 }
 
-output "instance_ids" {
-  value = aws_instance.ec2_instances[*].id
+output "ec2_instance_ids" {
+  value = aws_instance.ec2_instance.*.id
+
 }

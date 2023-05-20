@@ -1,23 +1,42 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.16"
-    }
-  }
-
-  required_version = ">= 1.2.0"
-}
-
 provider "aws" {
-  region  = "us-east-2"
+  region = var.region
 }
 
-resource "aws_instance" "app_server" {
-  ami           = "ami-08d70e59c07c61a3a"
-  instance_type = "t2.micro"
+module "vpc" {
+  source         = "./modules/vpc"
+  vpc_cidr_block = var.vpc_cidr
+  vpc_name       = var.vpc_name
+}
 
-  tags = {
-    Name = "ExampleAppServerInstance"
-  }
+module "ec2" {
+  source         = "./modules/ec2"
+  subnet_id      = var.vpc.subnet_id
+  instance_count = var.instance_count
+  instance_type  = var.instance_type
+  ami            = var.ami
+  key_name       = var.key_name
+  name_prefix    = var.name_prefix
+}
+
+module "rds" {
+  source               = "./modules/rds"
+  allocated_storage    = var.allocated_storage
+  engine               = var.engine
+  engine_version       = var.engine_version
+  instance_class       = var.db_instance_class
+  identifier           = var.identifier
+  name                 = var.db_name
+  username             = var.db_username
+  password             = var.db_password
+  security_group_id    = module.vpc.default_security_group_id
+  subnet_group_name    = var.db_subnet_group_name
+  parameter_group_name = var.db_parameter_group_name
+}
+
+module "bastion" {
+  source              = "./modules/bastion"
+  key_name            = var.key_name
+  security_group_id   = var.vpc.default_security_group_id
+  ami_id              = var.bastion_ami_id
+  instance_type       = var.bastion_instance_type
 }

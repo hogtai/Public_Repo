@@ -1,6 +1,6 @@
-variable "count" {
-  description = "Number of EC2 instances to create"
-  type        = number
+variable "instance_count" {
+  description = "Number of EC2 instances"
+  default     = 2
 }
 
 variable "ami" {
