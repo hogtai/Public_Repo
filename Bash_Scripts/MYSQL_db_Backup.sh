@@ -3,7 +3,7 @@
 # Set the MySQL credentials
 MYSQL_USER="your_username"
 MYSQL_PASSWORD="your_password"
-MYSQL_HOST="localhost"
+MYSQL_HOST="localhost" #Addtionally, you could use "192.168.0.100 or the DNS name i.e. mysql.example.com
 MYSQL_DATABASE="your_database"
 
 # Get the current date and time in Central time zone
