@@ -5,7 +5,7 @@ variable "region" {
 
 variable "vpc" {
   description = "VPC module input variable"
-  type        = object({
+  type = object({
     subnet_id = string
   })
 }

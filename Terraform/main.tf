@@ -34,9 +34,9 @@ module "rds" {
 }
 
 module "bastion" {
-  source              = "./modules/bastion"
-  key_name            = var.key_name
-  security_group_id   = var.vpc.default_security_group_id
-  ami_id              = var.bastion_ami_id
-  instance_type       = var.bastion_instance_type
+  source            = "./modules/bastion"
+  key_name          = var.key_name
+  security_group_id = var.vpc.default_security_group_id
+  ami_id            = var.bastion_ami_id
+  instance_type     = var.bastion_instance_type
 }
