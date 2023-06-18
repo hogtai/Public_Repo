@@ -33,7 +33,7 @@ variable "db_subnet_cidrs" {
 
 variable "windows_ami" {
   description = "The ID of the AMI to use for the Windows instance"
-  default     = "ami-0be1b5f5b1c62509e" // Fill in with your AMI ID
+  default     = "ami-0d94c3e6631d82048" // Fill in with your AMI ID
 }
 
 variable "redhat_ami" {
