@@ -34,3 +34,8 @@ variable "public_subnet" {
   default     = "subnet-0904bc13a733c1e71" # Replace with the actual default subnet ID
 }
 
+variable "security_group_id" {
+  description = "The ID of the security group to attach to the EC2 instance"
+  type        = string
+}
+

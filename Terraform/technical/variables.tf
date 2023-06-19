@@ -80,6 +80,12 @@ variable "bastion_volume_size" {
   default     = 50
 }
 
+variable "key_pair_name" {
+  description = "The name of the key pair to be used for the instance"
+  type        = string
+  default     = "coalfire" // replace with your key pair name
+}
+
 variable "wpserver_instance_type" {
   description = "The instance type for the wpserver instances"
   default     = "t3a.micro"

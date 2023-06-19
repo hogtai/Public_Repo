@@ -59,31 +59,39 @@ module "db_subnets" {
 }
 
 module "bastion" {
-  source            = "./modules/ec2"
-  ami               = var.windows_ami
-  subnet_id         = module.public_subnets.public_subnet_ids[0]
-  instance_type     = var.bastion_instance_type
-  instance_name     = var.bastion_instance_name
-  volume_size       = var.bastion_volume_size
-  security_group_id = [module.vpc_security_group.security_group_id]
+  source                = "./modules/ec2"
+  region                = var.region
+  bastion_instance_name = var.bastion_instance_name
+  windows_ami           = var.windows_ami
+  bastion_instance_type = var.bastion_instance_type
+  key_pair_name         = var.key_pair_name
+  public_subnet         = module.public_subnets.public_subnet_ids[0]
+  security_group_id     = [module.vpc_security_group]
+  bastion_volume_size   = var.bastion_volume_size
 }
 
 module "wpserver1" {
-  source        = "./modules/ec2"
-  ami           = var.redhat_ami
-  subnet_id     = module.wp_subnets.wp_subnet_ids[0]
-  instance_type = var.wpserver_instance_type
-  instance_name = var.wpserver1_instance_name
-  volume_size   = var.wpserver_volume_size
+  source                = "./modules/ec2"
+  region                = var.region
+  bastion_instance_name = var.wpserver1_instance_name
+  windows_ami           = var.redhat_ami
+  bastion_instance_type = var.wpserver_instance_type
+  key_pair_name         = var.key_pair_name
+  public_subnet         = module.wp_subnets.wp_subnet_ids[0]
+  security_group_id     = [module.wpserver_security_group]
+  bastion_volume_size   = var.wpserver_volume_size
 }
 
 module "wpserver2" {
-  source        = "./modules/ec2"
-  ami           = var.redhat_ami
-  subnet_id     = module.wp_subnets.wp_subnet_ids[1]
-  instance_type = var.wpserver_instance_type
-  instance_name = var.wpserver2_instance_name
-  volume_size   = var.wpserver_volume_size
+  source                = "./modules/ec2"
+  region                = var.region
+  bastion_instance_name = var.wpserver2_instance_name
+  windows_ami           = var.redhat_ami
+  bastion_instance_type = var.wpserver_instance_type
+  key_pair_name         = var.key_pair_name
+  public_subnet         = module.wp_subnets.wp_subnet_ids[1]
+  security_group_id     = [module.wpserver_security_group]
+  bastion_volume_size   = var.wpserver_volume_size
 }
 
 module "rds" {
