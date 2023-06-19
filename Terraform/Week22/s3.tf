@@ -4,7 +4,7 @@ resource "aws_s3_bucket" "project21_s3_bucket_84135" {
 
 resource "aws_s3_bucket_versioning" "project21_s3_bucket_84135" {
   bucket = aws_s3_bucket.project21_s3_bucket_84135.id // Enable versioning on the S3 bucket created above
-  
+
   versioning_configuration {
     status = "Enabled" // Set versioning status to "Enabled"
   }
@@ -13,9 +13,9 @@ resource "aws_s3_bucket_versioning" "project21_s3_bucket_84135" {
 resource "aws_s3_bucket_public_access_block" "project21_s3_bucket_84135_access_block" {
   bucket = aws_s3_bucket.project21_s3_bucket_84135.id // Block public access to the S3 bucket created above
 
-  block_public_acls   = true
-  block_public_policy = true
-  ignore_public_acls  = true
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
   restrict_public_buckets = true
 }
 

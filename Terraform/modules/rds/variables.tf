@@ -85,7 +85,7 @@ variable "parameter_name1" {
 variable "parameter_value1" {
   description = "Value of the first parameter"
   type        = string
-  default     = "1000" # Replace with the actual parameter value
+  default     = "500" # Replace with the actual parameter value
 }
 
 variable "parameter_name2" {

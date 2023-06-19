@@ -8,6 +8,15 @@ module "vpc" {
   vpc_name                 = var.vpc_name
   subnet_cidr              = var.subnet_cidr
   subnet_availability_zone = var.subnet_availability_zone
+  depends_on               = [module.vpc_security_group]
+}
+
+module "vpc_security_group" {
+  source                     = "./modules/securitygroups"
+  security_group_name        = var.security_group_name
+  security_group_description = var.security_group_description
+  inbound_port1              = var.inbound_port1
+  inbound_port2              = var.inbound_port2
 }
 
 module "public_subnets" {
@@ -16,6 +25,7 @@ module "public_subnets" {
   subnet_cidrs       = var.public_subnet_cidrs
   availability_zones = var.availability_zones
   subnet_names       = var.public_subnet_names
+  security_group_ids = [module.vpc_security_group.security_group_id]
 }
 
 module "wp_subnets" {

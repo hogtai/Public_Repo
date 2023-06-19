@@ -13,6 +13,30 @@ variable "vpc_name" {
   default     = "Application Plan VPC" // Change as per your preference
 }
 
+variable "security_group_name" {
+  description = "The name of the security group"
+  type        = string
+  default     = "my-security-group"
+}
+
+variable "security_group_description" {
+  description = "The description of the security group"
+  type        = string
+  default     = "Security group for allowing inbound traffic on ports 80 & 443"
+}
+
+variable "inbound_port1" {
+  description = "The first inbound port to allow traffic on"
+  type        = number
+  default     = 80
+}
+
+variable "inbound_port2" {
+  description = "The second inbound port to allow traffic on"
+  type        = number
+  default     = 443
+}
+
 variable "public_subnet_cidrs" {
   description = "CIDR blocks for the public subnets"
   type        = list(string)
@@ -140,7 +164,7 @@ variable "wp_subnet_availability_zones" {
 variable "subnet_cidr" {
   description = "CIDR block for the subnets"
   type        = string
-  default     = "10.1.0.0/16" // Replace with your desired CIDR block for the subnets
+  default     = "10.1.6.0/24" // Replace with your desired CIDR block for the subnets
 }
 
 variable "subnet_availability_zone" {

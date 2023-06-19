@@ -3,6 +3,11 @@ output "vpc_id" {
   value       = module.vpc.vpc_id
 }
 
+output "security_group_id" {
+  description = "The ID of the security group"
+  value       = module.vpc_security_group.security_group_id
+}
+
 output "public_subnet_ids" {
   description = "The IDs of the public subnets"
   value       = module.public_subnets.public_subnet_ids
