@@ -1,15 +1,10 @@
-output "instance_id" {
-  description = "The ID of the created instance"
-  value       = aws_instance.instance.id
+output "bastion_instance_id" {
+  description = "The ID of the bastion instance"
+  value       = aws_instance.bastion.id
 }
 
-output "public_ip" {
-  description = "The public IP of the created instance"
-  value       = aws_instance.instance.public_ip
-}
-
-output "private_ip" {
-  description = "The private IP of the created instance"
-  value       = aws_instance.instance.private_ip
+output "bastion_public_ip" {
+  description = "The public IP address of the bastion instance"
+  value       = aws_instance.bastion.public_ip
 }
 

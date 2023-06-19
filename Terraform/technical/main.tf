@@ -19,13 +19,27 @@ module "vpc_security_group" {
   inbound_port2              = var.inbound_port2
 }
 
+module "wpserver_security_group" {
+  source                     = "./modules/securitygroups/privateSG"
+  security_group_name        = var.wpserver_security_group_name
+  security_group_description = var.wpserver_security_group_description
+  inbound_port1              = var.wpserver_inbound_port1
+  inbound_port2              = var.wpserver_inbound_port2
+}
+
+module "postgres_security_group" {
+  source                     = "./modules/securitygroups/postgresSG"
+  security_group_name        = var.postgres_security_group_name
+  security_group_description = var.postgres_security_group_description
+  inbound_port1              = var.postgres_inbound_port1
+}
+
 module "public_subnets" {
   source             = "./modules/subnets"
   vpc_id             = module.vpc.vpc_id
   subnet_cidrs       = var.public_subnet_cidrs
   availability_zones = var.availability_zones
   subnet_names       = var.public_subnet_names
-  security_group_ids = [module.vpc_security_group.security_group_id]
 }
 
 module "wp_subnets" {
@@ -45,12 +59,13 @@ module "db_subnets" {
 }
 
 module "bastion" {
-  source        = "./modules/ec2"
-  ami           = var.windows_ami
-  subnet_id     = module.public_subnets.public_subnet_ids[0]
-  instance_type = var.bastion_instance_type
-  instance_name = var.bastion_instance_name
-  volume_size   = var.bastion_volume_size
+  source            = "./modules/ec2"
+  ami               = var.windows_ami
+  subnet_id         = module.public_subnets.public_subnet_ids[0]
+  instance_type     = var.bastion_instance_type
+  instance_name     = var.bastion_instance_name
+  volume_size       = var.bastion_volume_size
+  security_group_id = [module.vpc_security_group.security_group_id]
 }
 
 module "wpserver1" {

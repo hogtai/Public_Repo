@@ -190,3 +190,51 @@ variable "subnet_ids" {
   type        = list(string)
   default     = ["subnet-1", "subnet-2"] # Replace with your subnet IDs
 }
+
+variable "wpserver_security_group_name" {
+  description = "The name of the WP server security group"
+  type        = string
+  default     = "wpserver-security-group"
+}
+
+variable "wpserver_security_group_description" {
+  description = "The description of the WP server security group"
+  type        = string
+  default     = "Security group for WP servers"
+}
+
+variable "wpserver_inbound_port1" {
+  description = "The first inbound port to allow traffic on for WP servers"
+  type        = number
+  default     = 80
+}
+
+variable "wpserver_inbound_port2" {
+  description = "The second inbound port to allow traffic on for WP servers"
+  type        = number
+  default     = 443
+}
+
+variable "wpserver_outbound_port" {
+  description = "The outbound port to allow traffic to anywhere for WP servers"
+  type        = number
+  default     = 5432
+}
+
+variable "postgres_security_group_name" {
+  description = "The name of the PostgreSQL security group"
+  type        = string
+  default     = "my-postgres-security-group"
+}
+
+variable "postgres_security_group_description" {
+  description = "The description of the PostgreSQL security group"
+  type        = string
+  default     = "Security group for PostgreSQL"
+}
+
+variable "postgres_inbound_port1" {
+  description = "The inbound port for PostgreSQL"
+  type        = number
+  default     = 5432
+}

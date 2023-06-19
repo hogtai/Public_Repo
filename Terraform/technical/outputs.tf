@@ -47,3 +47,13 @@ output "alb_arn" {
   description = "The ARN of the Application Load Balancer"
   value       = module.alb.alb_arn
 }
+
+output "wpserver_security_group_id" {
+  description = "The ID of the WP server security group"
+  value       = module.wpserver_security_group.security_group_id
+}
+
+output "postgres_security_group_id" {
+  description = "The ID of the PostgreSQL security group"
+  value       = module.postgres_security_group.security_group_id
+}
