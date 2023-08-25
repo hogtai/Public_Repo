@@ -3,13 +3,15 @@ provider "aws" {
 }
 
 module "vpc" {
-  source         = "./modules/vpc"
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.1.1"
   vpc_cidr_block = var.vpc_cidr
   vpc_name       = var.vpc_name
 }
 
 module "ec2" {
-  source         = "./modules/ec2"
+  source  = "terraform-aws-modules/ec2-instance/aws"
+  version = "5.3.1"
   subnet_id      = var.vpc.subnet_id
   instance_count = var.instance_count
   instance_type  = var.instance_type
@@ -19,7 +21,8 @@ module "ec2" {
 }
 
 module "rds" {
-  source               = "./modules/rds"
+  source               = "terraform-aws-modules/rds/aws"
+  version              = "6.1.1"
   allocated_storage    = var.allocated_storage
   engine               = var.engine
   engine_version       = var.engine_version
