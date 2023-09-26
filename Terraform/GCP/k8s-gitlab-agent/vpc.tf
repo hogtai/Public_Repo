@@ -1,6 +1,6 @@
 provider "google" {
-  project = "157931075527"
-  region  = "us-central1"
+  project = var.gcp_project
+  region  = var.gcp_region
 }
 
 resource "google_compute_network" "int_poc_vpc" {
