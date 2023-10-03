@@ -1,8 +1,3 @@
-provider "google" {
-  project = var.gcp_project
-  region  = var.gcp_region
-}
-
 resource "google_compute_network" "int_poc_vpc" {
   name                    = "int-poc-k8s-gitlab-runner"
   description             = "VPC for testing gitlab kubernetes runner agent"
@@ -38,4 +33,30 @@ resource "google_compute_global_address" "int_poc_vpc_ula" {
   ip_version    = "IPV4"
   prefix_length = 24
   network       = google_compute_network.int_poc_vpc.self_link
+}
+
+resource "google_compute_router" "int_poc_router" {
+  name    = "int-poc-router"
+  project = var.gcp_project
+  region  = var.gcp_region
+  network = google_compute_network.int_poc_vpc.self_link
+}
+
+resource "google_compute_router_nat" "int_poc_nat" {
+  name                                = "int-poc-k8s-gitlabrunner-nat"
+  project                             = var.gcp_project
+  region                              = var.gcp_region
+  router                              = google_compute_router.int_poc_router.name
+  nat_ip_allocate_option              = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat  = "LIST_OF_SUBNETWORKS"
+  min_ports_per_vm                    = "1024"
+  enable_endpoint_independent_mapping = false
+  subnetwork {
+    name                    = google_compute_subnetwork.int_poc_subnet.name
+    source_ip_ranges_to_nat = ["PRIMARY_IP_RANGE"]
+  }
+  log_config {
+    enable = true
+    filter = "ERRORS_ONLY"
+  }
 }
