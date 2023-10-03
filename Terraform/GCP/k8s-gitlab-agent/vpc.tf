@@ -9,18 +9,18 @@ resource "google_compute_network" "int_poc_vpc" {
 resource "google_compute_subnetwork" "int_poc_subnet" {
   name          = "int-poc-k8s-gitlab-runner-subnet-01"
   description   = ""
-  ip_cidr_range = "10.250.108.0/28"
+  ip_cidr_range = "XX.XXX.XXX.X/XX"
   region        = "us-central1"
   network       = google_compute_network.int_poc_vpc.self_link
 
   secondary_ip_range {
     range_name    = "pods"
-    ip_cidr_range = "10.250.112.0/20"
+    ip_cidr_range = "XX.XXX.XXX.X/XX"
   }
 
   secondary_ip_range {
     range_name    = "services"
-    ip_cidr_range = "10.250.108.64/26"
+    ip_cidr_range = "XX.XXX.XXX.XX/XX"
   }
 
   private_ip_google_access = true
